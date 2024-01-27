@@ -1,4 +1,4 @@
-# 01/20/2024 Lesson 2 Practice
+# 01/20/2024 Lesson 2 Lesson-Practice
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
