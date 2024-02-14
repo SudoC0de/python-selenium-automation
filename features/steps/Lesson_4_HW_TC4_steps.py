@@ -23,15 +23,15 @@ def verify_target_help_page(context):
                                                                     'contains(text(),"returns") or contains(text(),'
                                                                     '"check GiftCard") or contains(text(),"fix")]')
     manage_container: List[WebElement] = context.driver.find_elements(By.XPATH, '//h3[text()="manage my"]')
-    todo_container_length:int = len(todo_container)
-    manage_container_length:int = len(manage_container)
+    todo_container_length: int = len(todo_container)
+    manage_container_length: int = len(manage_container)
 
     assert todo_container_length == 6 and manage_container_length == 1, f"Expected 6 ToDo items, got {todo_container_length} and 1 Manage items, got {manage_container_length}"
 
     contact_recall_container: List[WebElement] = context.driver.find_elements(By.XPATH,
                                                                               '//h3[text()="contact us" or text('
                                                                               ')="product recalls"]')
-    contact_recall_container_length:int = len(contact_recall_container)
+    contact_recall_container_length: int = len(contact_recall_container)
 
     assert contact_recall_container_length == 2, f"Expected 2 Contact Recall items, got {contact_recall_container_length}"
 

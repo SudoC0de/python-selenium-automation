@@ -1,61 +1,43 @@
-from selenium.webdriver import Keys
-from selenium.webdriver.common.by import By
 from behave import when, then
-from time import sleep
-from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 
-product_info = {
-    "Label Added CSS": "div[data-component-title='Product Grid'] > div > div > section > div > div:nth-child(1) > div > div > div:nth-child(1) > div:nth-child(2) > div[data-test='product-details'] > div > div > div:nth-child(1) > div:nth-child(1) > a[data-test='product-title']",
-    "Label Text" : ""
-}
 
 @when('Add Coffee To Cart')
 def add_coffee_to_cart(context):
-    search_input_css: str = "input#search[data-test='@web/Search/SearchInput']"
-    context.driver.find_element(By.CSS_SELECTOR, search_input_css).send_keys("coffee")
-    context.driver.find_element(By.CSS_SELECTOR, "button[data-test='@web/Search/SearchButton']").click()
+    elements: dict[str, tuple[str, str]] = {
+        'SearchResult': (By.CSS_SELECTOR, "div[data-component-title='Product Grid'] > div > div > section > div > div:nth-child(1) > div > div > div:nth-child(1) > div:nth-child(2) > div[data-test='product-details'] > div > div > div:nth-child(1) > div:nth-child(1) > a[data-test='product-title']"),
+        'SearchInput': (By.CSS_SELECTOR, "input#search[data-test='@web/Search/SearchInput']"),
+        'SearchButton': (By.CSS_SELECTOR, "button[data-test='@web/Search/SearchButton']"),
+        'AddToCartButton': (By.CSS_SELECTOR, "div[data-component-title='Product Grid'] > div > div > section > div > div:nth-child(1) > div > div > div:nth-child(2) > div > div > button[data-test='chooseOptionsButton']"),
+        'SidebarAddToCartButton': (By.CSS_SELECTOR, "button[data-test='orderPickupButton']")
+    }
 
-    count: int = 0
-    count_limit: int = 5
-
-    while (len(context.driver.find_elements(By.CSS_SELECTOR,product_info["Label Added CSS"])) == 0 and
-           count < count_limit):
-        count += 1
-        sleep(1)
-
-
-    product_info["Label Text"] = context.driver.find_element(By.CSS_SELECTOR, product_info["Label Added CSS"]).text
-    add_to_cart_css: str = "div[data-component-title='Product Grid'] > div > div > section > div > div:nth-child(1) > div > div > div:nth-child(2) > div > div > button[data-test='chooseOptionsButton']"
-    add_button: WebElement = context.driver.find_element(By.CSS_SELECTOR, add_to_cart_css)
-    context.driver.execute_script("arguments[0].click()", add_button) # Had to do it this way otherwise a "selenium.common.exceptions.ElementClickInterceptedException: Message: element click intercepted" would be thrown for some reason
-
-    sidebar_add_to_cart_css: str = "button[data-test='shippingButton']"
-    count = 0
-
-    while (len(context.driver.find_elements(By.CSS_SELECTOR, sidebar_add_to_cart_css)) == 0 and
-           count < count_limit):
-        count += 1
-        sleep(1)
-
-    context.driver.find_element(By.CSS_SELECTOR, sidebar_add_to_cart_css).click()
+    context.driver.find_element(*elements['SearchInput']).send_keys("coffee")
+    context.driver.find_element(*elements['SearchButton']).click()
+    context.wait.until(EC.presence_of_element_located(elements['SearchResult']))
+    context.wait.until(EC.element_to_be_clickable(elements['AddToCartButton']))
+    context.driver.execute_script("arguments[0].click()", context.driver.find_element(*elements['AddToCartButton'])) # Had to do it this way otherwise a "selenium.common.exceptions.ElementClickInterceptedException: Message: element click intercepted" would be thrown for some reason
+    context.wait.until(EC.element_to_be_clickable(elements['SidebarAddToCartButton'])) # "element_to_be_clickable" does not work 100% of the time for some reason
+    context.driver.find_element(*elements['SidebarAddToCartButton']).click()
 
 @then('Verify Coffee Added To Cart')
 def verify_coffee_added(context):
-    view_cart_css = "a[href='/cart']"
-    count: int = 0
-    count_limit: int = 5
+    elements: dict[str, tuple[str, str]] = {
+        'LabelAdded': (By.CSS_SELECTOR, 'div[data-test="content-wrapper"] > div > div > h4'),
+        'ViewCartCSS': (By.CSS_SELECTOR, "a[href='/cart']"),
+        'CartHeading': (By.CSS_SELECTOR, "#cart-summary-heading"),
+        'CartTitle': (By.CSS_SELECTOR, "div[data-test='cartItem-title'] > div")
+    }
 
-    while (len(context.driver.find_elements(By.CSS_SELECTOR, view_cart_css)) == 0 and
-           count < count_limit):
-        count += 1
-        sleep(1)
+    context.wait.until(EC.visibility_of_element_located(elements['LabelAdded']))
 
-    context.driver.find_element(By.CSS_SELECTOR, view_cart_css).click()
-    count = 0
+    label_text: str = context.driver.find_element(*elements['LabelAdded']).text
 
-    while (len(context.driver.find_elements(By.CSS_SELECTOR, "#cart-summary-heading")) == 0 and
-           count < count_limit):
-        count += 1
-        sleep(1)
+    context.wait.until(EC.element_to_be_clickable(elements['ViewCartCSS']))
+    context.driver.find_element(*elements['ViewCartCSS']).click()
+    context.wait.until(EC.visibility_of_element_located(elements['CartHeading']))
 
-    assert product_info["Label Text"] in context.driver.find_element(By.CSS_SELECTOR, "div[data-test='cartItem-title'] > div").text, f"{product_info["Label Text"]} was not added to the cart"
+    cart_text: str = context.driver.find_element(*elements['CartTitle']).text
+
+    assert label_text in cart_text, f"\"{label_text}\" was not added to the cart. \"{cart_text}\" was added instead."
