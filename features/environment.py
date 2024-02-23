@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.wait import WebDriverWait
@@ -12,6 +13,20 @@ def browser_init(context):
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     context.driver = webdriver.Chrome(service=service)
+
+    #bs_user: str = ''
+    #bs_key: str = ''
+    #url: str = f'http://{bs_user}:{bs_key}@hub-cloud.browserstack.com/wd/hub'
+#
+    #options: Options = Options()
+    #bstack_options: dict[str, str] = {
+    #     'os': 'Windows',
+    #     'osVersion': '10',
+    #     'browserName': 'Chrome',
+    #     'sessionName': 'View Target Terms & Conditions'
+    # }
+    #options.set_capability('bstack:options', bstack_options)
+    #context.driver = webdriver.Remote(command_executor=url, options=options)
 
     context.driver.maximize_window()
 

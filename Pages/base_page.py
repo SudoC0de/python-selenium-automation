@@ -31,6 +31,9 @@ class Page:
         self.wait.until(EC.element_to_be_clickable(locator))
         self.driver.execute_script("arguments[0].click()", self.find_element(locator))
 
+    def close_window(self):
+        self.driver.close()
+
     def enter_text(self, text: str, locator: tuple[str, str]):
         text_input: WebElement = self.driver.find_element(*locator)
         text_input.clear()
@@ -47,3 +50,9 @@ class Page:
 
     def wait_until_clickable(self, locator: tuple[str, str]):
         self.wait.until(EC.element_to_be_clickable(locator))
+
+    def wait_until_new_window_opened(self, num_windows: int):
+        # Including the following as well as it also works according to the following link
+        # https://www.selenium.dev/documentation/webdriver/interactions/windows/
+        # self.wait.until(EC.number_of_windows_to_be(num_windows))
+        self.wait.until(EC.new_window_is_opened)
